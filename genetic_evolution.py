@@ -183,21 +183,21 @@ class GeneticEvolution():
             agents = old_agents
         
         all_scores = []
+        solutions = []
         
         for epoch in range(epochs):
             agents_scores = [(x, x.get_fitness()) for x in agents]
             agents_sorted = self.sort_agents_by_fitness(agents_scores)
             all_scores.append(agents_sorted)
 #            if epoch % 20 == 0:
+            grid_setting = np.array(agents_sorted[0][0].get_data()).reshape(np.int(np.sqrt(self.chromosome_len)), np.int(np.sqrt(self.chromosome_len)))
             print('current fittest: ' + str(agents_sorted[0][1]) + ' in epoch: ' + str(epoch) + ' with age: ' + str(agents_sorted[0][0].get_age()))
-            print(str(np.array(agents_sorted[0][0].get_data()).reshape(np.int(np.sqrt(self.chromosome_len)), np.int(np.sqrt(self.chromosome_len)))))
+            print(str(grid_setting))
             print()
             if agents_sorted[0][1] == 1.0:
                 print("WE FOUND A SOLUTION")
-                return all_scores, agents
+                solutions.append(grid_setting)
             agents = self.generate_new_population(population_size, agents_sorted)
                 
-        return all_scores, agents
+        return all_scores, agents, solutions
     
-GA = GeneticEvolution(maximize = True, chromosome_len = 16)
-scores, agents = GA.Evolve(100000, 1000)
