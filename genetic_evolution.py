@@ -4,6 +4,7 @@ import time
 import glob, os, sys, getopt
 import matplotlib.pyplot as plt
 from individual import Individual
+import matplotlib.pyplot as plt
 
 class GeneticEvolution():
     def __init__(self, max_age = 20, selection_rate = 0.012, mutate_rate = 0.5, elitism_rate = 0.15, crossover_rate = 0.85, crossover_operator = "random", mutation_operator = "random", maximize = True, chromosome_len = None):
@@ -197,19 +198,14 @@ class GeneticEvolution():
             agents_scores = [(x, x.get_fitness()) for x in agents]
             agents_sorted = self.sort_agents_by_fitness(agents_scores)
             all_scores.append(agents_sorted)
-<<<<<<< HEAD
-
-=======
 #            if epoch % 20 == 0:
             grid_setting = np.array(agents_sorted[0][0].get_data()).reshape(np.int(np.sqrt(self.chromosome_len)), np.int(np.sqrt(self.chromosome_len)))
->>>>>>> c2b64c0489ee51909de44a0c65cd019609215b4f
             print('current fittest: ' + str(agents_sorted[0][1]) + ' in epoch: ' + str(epoch) + ' with age: ' + str(agents_sorted[0][0].get_age()))
             print(str(grid_setting))
             print()
             
             if agents_sorted[0][1] >= 1.0:
                 print("WE FOUND A SOLUTION")
-<<<<<<< HEAD
                 return all_scores, agents, np.array(agents_sorted[0][0].get_data()).reshape(np.int(np.sqrt(self.chromosome_len)), np.int(np.sqrt(self.chromosome_len)))
             agents = self.generate_new_population(population_size, agents_sorted)
                 
@@ -217,10 +213,17 @@ class GeneticEvolution():
     
 GA = GeneticEvolution(maximize = True, chromosome_len = 81)
 scores, agents, sol = GA.Evolve(5000, 1000)
-=======
-                solutions.append(grid_setting)
-            agents = self.generate_new_population(population_size, agents_sorted)
-                
-        return all_scores, agents, solutions
+
+cost = []
+for l in scores:
+    avg = 0.
+    for s in l:
+        avg += s[1]
+    avg /= len(l)
+    cost.append(avg)
     
->>>>>>> c2b64c0489ee51909de44a0c65cd019609215b4f
+plt.plot(np.squeeze(cost))
+plt.ylabel('avg fitness')
+plt.xlabel('generations')
+plt.title('soduko solver')
+plt.show()
