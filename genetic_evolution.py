@@ -5,6 +5,7 @@ import glob, os, sys, getopt
 import matplotlib.pyplot as plt
 from individual import Individual
 import matplotlib.pyplot as plt
+import pickle
 
 class GeneticEvolution():
     def __init__(self, max_age = 20, selection_rate = 0.012, mutate_rate = 0.5, elitism_rate = 0.15, crossover_rate = 0.85, crossover_operator = "random", mutation_operator = "random", maximize = True, chromosome_len = None):
@@ -222,8 +223,26 @@ for l in scores:
     avg /= len(l)
     cost.append(avg)
     
-plt.plot(np.squeeze(cost))
-plt.ylabel('avg fitness')
+mxcost = []
+for l in scores:
+    mx = 0.
+    for s in l:
+        mx = max(mx, s[1])
+    mxcost.append(mx)
+    
+plt.plot(np.squeeze(mxcost))
+plt.ylabel('mx fitness')
 plt.xlabel('generations')
 plt.title('soduko solver')
 plt.show()
+
+
+def save_file(agent, path):
+    with open(path, "wb") as f:
+        pickle.dump(agent, f, pickle.HIGHEST_PROTOCOL)
+        
+def load_file(path):
+    with open(path, "rb") as f:
+        return pickle.load(f)
+
+
