@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from individual import Individual
 
 class GeneticEvolution():
-    def __init__(self, max_age = 20, selection_rate = 0.03, mutate_rate = 0.08, elitism_rate = 0.2, crossover_rate = 0.8, crossover_operator = "random", mutation_operator = "random", maximize = True, chromosome_len = None):
+    def __init__(self, max_age = 20, selection_rate = 0.012, mutate_rate = 0.5, elitism_rate = 0.15, crossover_rate = 0.85, crossover_operator = "random", mutation_operator = "random", maximize = True, chromosome_len = None):
         self.mutate_rate = mutate_rate
         self.elitism_rate = elitism_rate
         self.crossover_operator = crossover_operator
@@ -34,69 +34,77 @@ class GeneticEvolution():
             tournament_agents.append(agents[index])
             
         tournament_agents = set(tournament_agents)
+
         tournament_agents = self.sort_agents_by_fitness(tournament_agents)
 
-        return tournament_agents[0][0]
+        return tournament_agents[0]
     
     def generate_new_population(self, population_size, agents = []):
         
         coupled = {}
         children = []
-        selected_top_agents = []
+        agents = [x[0] for x in agents]
+        print(len(set(agents)))
         top_agents = agents[:int(len(agents) * self.elitism_rate)]
-        for agent in top_agents:
-            if agent[0].get_age() <= self.max_age:
-                agent[0].increment_age()
-                selected_top_agents.append(agent[0])
+        new_individuals = []
         
-        while len(children) < (population_size - len(selected_top_agents)):
+        for agent in top_agents:
+            if agent.get_age() <= self.max_age:
+                agent.increment_age()
+                new_individuals.append(agent)
+                
+        while len(children) < (population_size - len(new_individuals)):
             r = int(len(agents) * self.selection_rate)
             male, female = self.tournament_selection(agents, r), self.tournament_selection(agents, r)
-            if random() > self.crossover_rate:#coupled.get((male, female)) == None and male != female:
+            if random() < self.crossover_rate and male != female:# and male.get_data() != female.get_data():
                 new_offspring = self.crossover(male, female)
                 coupled[(male, female)] = True
                 coupled[(female, male)] = True
                 if self.mutate_rate > random():
                     new_offspring = self.mutate(new_offspring)
-                children.append(new_offspring)
+                if new_offspring not in children:
+                    children.append(new_offspring)
 #            print(str(len(children)) + ' ' + str(population_size))
 #            elif coupled.get((male, female)) != None:
 #                print('already coupled')
 #            elif male == female:
 #                print('same')
         
-#        print('pop size: ' + str(population_size))
-#        print('len of selected agents: ' + str(len(top_agents)))
-#        print('len of new agents: ' + str(len(children)))
-#        print()
-        
-        new_individuals = []
         for child in children:
             individual = Individual(self.chromosome_len, np.int(np.sqrt(self.chromosome_len)))
             individual.set_data(child)
             individual.increment_age()
             new_individuals.append(individual)
-
-        return selected_top_agents + new_individuals
+            
+        print('pop size: ' + str(population_size))
+        print('len of selected agents: ' + str(len(top_agents)))
+        print('len of children: ' + str(len(children)))
+        print('len of new agents: ' + str(len(new_individuals)))
+        print()
+            
+        return new_individuals
     
     def crossover(self, male, female):
         male_dna = male.get_data()
         female_dna = female.get_data()
         new_dna = []
         if self.crossover_operator == "random":
-            r = randint(0, 1)
+            r = randint(0, 2)
             if r == 0:
                 for i in range(len(male_dna)):
                     if random() > 0.5:
                         new_dna.append(male_dna[i])
                     else:
                         new_dna.append(female_dna[i])
-            else:
+            elif r == 1:
                 i, j = 0, 0
                 while i >= j:
                     i = randint(0, len(male_dna) - 1)
                     j = randint(0, len(female_dna) - 1)
                 new_dna = male_dna[:i] + female_dna[i:j] + male_dna[j:]
+            else:
+                i = randint(0, len(male_dna) - 1)
+                new_dna = male_dna[:i] + female_dna[i:]
                 
         elif self.crossover_operator == "uniform":
             for i in range(len(male_dna)):
@@ -188,16 +196,17 @@ class GeneticEvolution():
             agents_scores = [(x, x.get_fitness()) for x in agents]
             agents_sorted = self.sort_agents_by_fitness(agents_scores)
             all_scores.append(agents_sorted)
-#            if epoch % 20 == 0:
+
             print('current fittest: ' + str(agents_sorted[0][1]) + ' in epoch: ' + str(epoch) + ' with age: ' + str(agents_sorted[0][0].get_age()))
             print(str(np.array(agents_sorted[0][0].get_data()).reshape(np.int(np.sqrt(self.chromosome_len)), np.int(np.sqrt(self.chromosome_len)))))
             print()
-            if agents_sorted[0][1] == 1.0:
+            
+            if agents_sorted[0][1] >= 1.0:
                 print("WE FOUND A SOLUTION")
-                return all_scores, agents
+                return all_scores, agents, np.array(agents_sorted[0][0].get_data()).reshape(np.int(np.sqrt(self.chromosome_len)), np.int(np.sqrt(self.chromosome_len)))
             agents = self.generate_new_population(population_size, agents_sorted)
                 
-        return all_scores, agents
+        return all_scores, agents, None
     
-GA = GeneticEvolution(maximize = True, chromosome_len = 16)
-scores, agents = GA.Evolve(100000, 1000)
+GA = GeneticEvolution(maximize = True, chromosome_len = 81)
+scores, agents, sol = GA.Evolve(5000, 1000)
