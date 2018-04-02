@@ -230,7 +230,7 @@ for l in scores:
         mx = max(mx, s[1])
     mxcost.append(mx)
     
-plt.plot(np.squeeze(mxcost))
+plt.plot(np.squeeze(cost))
 plt.ylabel('mx fitness')
 plt.xlabel('generations')
 plt.title('soduko solver')
